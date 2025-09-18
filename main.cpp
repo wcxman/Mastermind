@@ -13,7 +13,7 @@ private:
 public:
     // constructor: auto-generate random code
     Code(int length, int range) : n(length), m(range) {
-        iniRandom();
+        initializeRandom();
     }
 
     // fill with random digits
