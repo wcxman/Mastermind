@@ -91,7 +91,7 @@ public:
 
 // Part 1: Main function for testing
 void part1Main() {
-    cout << "=== PART 1: Testing Code Class ===" << endl;
+    cout << "=== Sample Guess Code ===" << endl;
     
     // Initialize secret code with specific values for testing
     Code secretCode(5, 10);
