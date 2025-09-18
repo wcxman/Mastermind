@@ -1,310 +1,251 @@
+#include <iostream>
 #include <vector>
 #include <cstdlib>
-#include <iostream>
 #include <ctime>
-#include <string>
-#include <stdexcept>
-#include <algorithm>
 using namespace std;
 
 class Code {
 private:
-    int n; // Code length
-    int m; // Digit range [0, m-1]
-    vector<int> secretCode;
+    int n;                  // code length
+    int m;                  // digit range [0..m-1]
+    vector<int> secret;     // secret digits
 
 public:
-    // Constructor that is passed values n and m
+    // constructor: auto-generate random code
     Code(int length, int range) : n(length), m(range) {
-        if (n <= 0) throw invalid_argument("Length must be positive");
-        if (m <= 0) throw invalid_argument("Range must be positive");
-        initializeRandom(); // Initialize the code randomly
+        iniRandom();
     }
 
-    // Function that initializes the code randomly
+    // fill with random digits
     void initializeRandom() {
-        secretCode.clear();
+        secret.clear();
         for (int i = 0; i < n; i++) {
-            secretCode.push_back(rand() % m);
+            secret.push_back(rand() % m);
         }
     }
 
-    // Function to manually set code (for testing)
-    void setCode(const vector<int>& newCode) {
-        if (newCode.size() != n) throw invalid_argument("Code size mismatch");
-        for (int digit : newCode) {
-            if (digit < 0 || digit >= m) throw out_of_range("Digit out of range");
-        }
-        secretCode = newCode;
-    }
-
-    // Function checkCorrect: returns number of correct digits in correct location
+    // count digits that match in the same position
     int checkCorrect(const Code& guess) const {
-        if (guess.n != n) throw invalid_argument("Guess length doesn't match");
-        if (guess.m != m) throw invalid_argument("Guess range doesn't match");
-        
-        int count = 0;
+        int correct = 0;
         for (int i = 0; i < n; i++) {
-            if (secretCode[i] == guess.secretCode[i]) {
-                count++;
-            }
+            if (secret[i] == guess.secret[i]) correct++;
         }
-        return count;
+        return correct;
     }
 
-    // Function checkIncorrect: returns number of correct digits in incorrect location
+    // count digits that are correct but in the wrong position
     int checkIncorrect(const Code& guess) const {
-        if (guess.n != n) throw invalid_argument("Guess length doesn't match");
-        if (guess.m != m) throw invalid_argument("Guess range doesn't match");
-        
-        vector<int> codeCount(m, 0);
-        vector<int> guessCount(m, 0);
-        
-        // Count occurrences of each digit (excluding exact matches)
+        vector<int> codeCount(m, 0), guessCount(m, 0);
+        int incorrect = 0;
+
         for (int i = 0; i < n; i++) {
-            if (secretCode[i] != guess.secretCode[i]) {
-                codeCount[secretCode[i]]++;
-                guessCount[guess.secretCode[i]]++;
+            if (secret[i] != guess.secret[i]) {
+                codeCount[secret[i]]++;
+                guessCount[guess.secret[i]]++;
             }
         }
-        
-        // Count minimum occurrences for each digit
-        int count = 0;
-        for (int i = 0; i < m; i++) {
-            count += min(codeCount[i], guessCount[i]);
+        for (int d = 0; d < m; d++) {
+            incorrect += min(codeCount[d], guessCount[d]);
         }
-        return count;
+        return incorrect;
     }
 
-    // Getter functions
-    vector<int> getCode() const { return secretCode; }
-    int getLength() const { return n; }
-    int getRange() const { return m; }
+    // helper: manually set code
+    void setCode(const vector<int>& c) {
+        if ((int)c.size() == n) secret = c;
+    }
 
-    // Print the code
+    // print out the code
     void printCode() const {
-        for (int digit : secretCode) {
-            cout << digit << " ";
-        }
+        for (int d : secret) cout << d << " ";
+        cout << "\n";
     }
 };
 
-// Part a: Main function for testing
-void part1Main() {
-    cout << "=== Sample Guess Code ===" << endl;
-    
-    // Initialize secret code with specific values for testing
+int main() {
+    srand(time(0));
+
+    // create a code of length 5, range 0-9
     Code secretCode(5, 10);
-    vector<int> secretDigits = {3, 1, 4, 1, 9};
-    secretCode.setCode(secretDigits);
-    
+    // for demo, fix the code to something known
+    secretCode.setCode({3, 1, 4, 1, 9});
+
     cout << "Secret code: ";
     secretCode.printCode();
-    cout << endl << endl;
-    
-    // Test case 1: (5, 0, 3, 2, 6)
-    Code guess1(5, 10);
-    vector<int> guess1Digits = {5, 0, 3, 2, 6};
-    guess1.setCode(guess1Digits);
-    
-    cout << "Guess 1: ";
-    guess1.printCode();
     cout << endl;
-    cout << "Correct positions: " << secretCode.checkCorrect(guess1) << endl;
-    cout << "Correct digits wrong position: " << secretCode.checkIncorrect(guess1) << endl << endl;
-    
-    // Test case 2: (2, 1, 2, 2, 2)
-    Code guess2(5, 10);
-    vector<int> guess2Digits = {2, 1, 2, 2, 2};
-    guess2.setCode(guess2Digits);
-    
-    cout << "Guess 2: ";
-    guess2.printCode();
-    cout << endl;
-    cout << "Correct positions: " << secretCode.checkCorrect(guess2) << endl;
-    cout << "Correct digits wrong position: " << secretCode.checkIncorrect(guess2) << endl << endl;
-    
-    // Test case 3: (1, 3, 3, 4, 5)
-    Code guess3(5, 10);
-    vector<int> guess3Digits = {1, 3, 3, 4, 5};
-    guess3.setCode(guess3Digits);
-    
-    cout << "Guess 3: ";
-    guess3.printCode();
-    cout << endl;
-    cout << "Correct positions: " << secretCode.checkCorrect(guess3) << endl;
-    cout << "Correct digits wrong position: " << secretCode.checkIncorrect(guess3) << endl;
+
+    // test guesses
+    vector<vector<int>> guesses = {
+        {5, 0, 3, 2, 6},
+        {2, 1, 2, 2, 2},
+        {1, 3, 3, 4, 5}
+    };
+
+    for (int i = 0; i < (int)guesses.size(); i++) {
+        Code guess(5, 10);
+        guess.setCode(guesses[i]);
+
+        cout << "Guess " << i + 1 << ": ";
+        guess.printCode();
+
+        int c = secretCode.checkCorrect(guess);
+        int ic = secretCode.checkIncorrect(guess);
+
+        cout << "  correct (right spot): " << c << "\n";
+        cout << "  correct (wrong spot): " << ic << "\n\n";
+    }
+
+    return 0;
 }
+
 //Part b: function for playing
 class Response {
 private:
-    int correct;
-    int incorrect;
+    int numCorrect;
+    int numIncorrect;
 
 public:
     // Constructor
-    Response(int c = 0, int i = 0) : correct(c), incorrect(i) {}
-    
-    // Setter functions
-    void setCorrect(int c) { correct = c; }
-    void setIncorrect(int i) { incorrect = i; }
-    
-    // Getter functions
-    int getCorrect() const { return correct; }
-    int getIncorrect() const { return incorrect; }
+    Response(int correct = 0, int incorrect = 0)
+        : numCorrect(correct), numIncorrect(incorrect) {}
+
+    // Getters
+    int getCorrect() const { return numCorrect; }
+    int getIncorrect() const { return numIncorrect; }
+
+    // Setters
+    void setCorrect(int c) { numCorrect = c; }
+    void setIncorrect(int ic) { numIncorrect = ic; }
+
+    // Equality operator
+    friend bool operator==(const Response &r1, const Response &r2) {
+        return (r1.numCorrect == r2.numCorrect &&
+                r1.numIncorrect == r2.numIncorrect);
+    }
+
+    // Print operator
+    friend ostream& operator<<(ostream &out, const Response &r) {
+        out << "Correct: " << r.numCorrect << ", Incorrect: " << r.numIncorrect;
+        return out;
+    }
 };
 
-// Overloaded operator == that compares responses
-bool operator==(const Response& r1, const Response& r2) {
-    return (r1.getCorrect() == r2.getCorrect()) &&
-           (r1.getIncorrect() == r2.getIncorrect());
-}
-
-// Overloaded operator << that prints a response
-ostream& operator<<(ostream& os, const Response& response) {
-    os << response.getCorrect() << " correct position, "
-       << response.getIncorrect() << " correct digit(s) in wrong position";
-    return os;
-}
-
-class Mastermind {
+// Object Code
+class Code {
 private:
-    Code secretCode;
-    const int MAX_GUESSES = 10;
+    vector<int> digits;   // secret code
+    int length;
 
 public:
-    // Constructor with parameters from keyboard
-    Mastermind(int n, int m) : secretCode(n, m) {}
-    
-    // Constructor with default values: n=5, m=10
-    Mastermind() : secretCode(5, 10) {}
-    
-    // Function that prints the secret code
-    void printSecretCode() const {
-        cout << "Secret code: ";
-        secretCode.printCode();
+    Code(int n = 5, int m = 10) : length(n) {
+        digits.resize(n);
+        srand((unsigned) time(0));
+        for (int i = 0; i < n; i++) {
+            digits[i] = rand() % m; // numbers in [0, m-1]
+        }
+    }
+
+    Code(const vector<int>& guess) {
+        digits = guess;
+        length = (int) guess.size();
+    }
+
+    void printCode() const {
+        for (int d : digits) cout << d << " ";
         cout << endl;
     }
-    
-    // Function humanGuess: reads a guess from keyboard and returns a code object
-    Code humanGuess() const {
-        string input;
-        while (true) {
-            cout << "Enter your guess (" << secretCode.getLength()
-                 << " digits, range 0-" << (secretCode.getRange() - 1) << "): ";
-            cin >> input;
-            
-            // Validate input length
-            if (input.length() != secretCode.getLength()) {
-                cout << "Error: Guess must be exactly " << secretCode.getLength()
-                     << " digits. Please try again." << endl;
-                continue;
+
+    const vector<int>& getDigits() const { return digits; }
+
+    // compare guess with secret -> generate response
+    Response compareWith(const Code &guess) const {
+        int correct = 0;
+        int incorrect = 0;
+        vector<bool> usedSecret(length, false);
+        vector<bool> usedGuess(length, false);
+
+        // first pass: correct position
+        for (int i = 0; i < length; i++) {
+            if (digits[i] == guess.digits[i]) {
+                correct++;
+                usedSecret[i] = true;
+                usedGuess[i] = true;
             }
-            
-            // Validate each digit
-            bool valid = true;
-            vector<int> guessDigits;
-            for (char c : input) {
-                if (!isdigit(c)) {
-                    cout << "Error: Guess must contain only digits. Please try again." << endl;
-                    valid = false;
-                    break;
-                }
-                int digit = c - '0';
-                if (digit < 0 || digit >= secretCode.getRange()) {
-                    cout << "Error: Digit " << digit << " is out of range [0, "
-                         << (secretCode.getRange() - 1) << "]. Please try again." << endl;
-                    valid = false;
-                    break;
-                }
-                guessDigits.push_back(digit);
-            }
-            
-            if (!valid) continue;
-            
-            // Create and return code object
-            Code guess(secretCode.getLength(), secretCode.getRange());
-            guess.setCode(guessDigits);
-            return guess;
         }
-    }
-    
-    // Function getResponse: returns response for a guess
-    Response getResponse(const Code& guess) const {
-        int correct = secretCode.checkCorrect(guess);
-        int incorrect = secretCode.checkIncorrect(guess);
+
+        // second pass: correct digit, wrong place
+        for (int i = 0; i < length; i++) {
+            if (usedGuess[i]) continue;
+            for (int j = 0; j < length; j++) {
+                if (!usedSecret[j] && guess.digits[i] == digits[j]) {
+                    incorrect++;
+                    usedSecret[j] = true;
+                    break;
+                }
+            }
+        }
+
         return Response(correct, incorrect);
-    }
-    
-    // Function isSolved: returns true if response indicates solved
-    bool isSolved(const Response& response) const {
-        return response.getCorrect() == secretCode.getLength();
-    }
-    
-    // Function playGame: main game loop
-    void playGame() {
-        cout << "\n=== MASTERMIND GAME ===" << endl;
-        printSecretCode(); // Show secret code for testing
-        cout << "You have " << MAX_GUESSES << " guesses to break the code!" << endl;
-        
-        for (int attempt = 1; attempt <= MAX_GUESSES; attempt++) {
-            cout << "\nAttempt #" << attempt << "/" << MAX_GUESSES << endl;
-            
-            Code guess = humanGuess();
-            Response response = getResponse(guess);
-            
-            cout << "Response: " << response << endl;
-            
-            if (isSolved(response)) {
-                cout << "\nCongratulations! You broke the code in "
-                     << attempt << " attempts!" << endl;
-                return;
-            }
-            
-            if (attempt < MAX_GUESSES) {
-                cout << "Attempts remaining: " << (MAX_GUESSES - attempt) << endl;
-            }
-        }
-        
-        cout << "\nGame over! You failed to break the code." << endl;
-        printSecretCode();
     }
 };
 
-// Part 2: Main function for the complete game
-void part2Main() {
-    srand(time(0)); // Seed random number generator
-    
-    try {
-        int n, m;
-        cout << "\nEnter code length (n): ";
-        cin >> n;
-        cout << "Enter digit range (m): ";
-        cin >> m;
-        
-        if (n <= 0 || m <= 0) {
-            throw invalid_argument("Both values must be positive integers");
-        }
-        
-        Mastermind game(n, m);
-        game.playGame();
-        
-    } catch (const exception& e) {
-        cout << "Error: " << e.what() << endl;
-    }
-}
+// Game play class
+class Mastermind {
+private:
+    Code secret;
+    int n, m;
 
-// Main function to run both parts
+public:
+    // default constructor
+    Mastermind() : n(5), m(10), secret(n, m) {}
+
+    // custom constructor
+    Mastermind(int nVal, int mVal) : n(nVal), m(mVal), secret(n, m) {}
+
+    void printSecret() const {
+        cout << "Secret code: ";
+        secret.printCode();
+    }
+
+    Code humanGuess() {
+        vector<int> guessDigits;
+        cout << "Enter your guess (" << n << " numbers between 0 and " << m-1 << "): ";
+        for (int i = 0; i < n; i++) {
+            int val;
+            cin >> val;
+            guessDigits.push_back(val);
+        }
+        return Code(guessDigits);
+    }
+
+    Response getResponse(const Code &guess) const {
+        return secret.compareWith(guess);
+    }
+
+    bool isSolved(const Response &r) const {
+        return r.getCorrect() == n;
+    }
+
+    void playGame() {
+        printSecret();  // required for testing
+        int attempts = 0;
+        while (true) {
+            attempts++;
+            Code guess = humanGuess();
+            Response r = getResponse(guess);
+            cout << r << endl;
+
+            if (isSolved(r)) {
+                cout << "You solved it in " << attempts << " attempts!" << endl;
+                break;
+            }
+        }
+    }
+};
+
+//Output
 int main() {
-    srand(time(0)); // Seed random number generator once
-    
-    // Run Part 1 tests
-    part1Main();
-    
-    cout << "\n" << string(50, '=') << "\n" << endl;
-    
-    // Run Part 2 game
-    part2Main();
-    
+    Mastermind game(4, 6); // example: length=4, range=0..5
+    game.playGame();
     return 0;
 }
