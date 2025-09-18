@@ -57,7 +57,7 @@ public:
     }
 
     int checkCorrect(const code& guess) const {
-        if (guess.n != n) throw invalid_argument("Guess length mismatch");
+        if (guess.n != n) throw invalid_argument("Guess length does not match");
         int count = 0;
         for (int i = 0; i < n; i++) {
             if (digits[i] == guess.digits[i]) {
@@ -68,7 +68,7 @@ public:
     }
 
     int checkIncorrect(const code& guess) const {
-        if (guess.n != n) throw invalid_argument("Guess length mismatch");
+        if (guess.n != n) throw invalid_argument("Guess length does not match");
         vector<int> secretCount(m, 0);
         vector<int> guessCount(m, 0);
         
@@ -87,7 +87,7 @@ public:
     }
 
     void setCode(const vector<int>& c) {
-        if (c.size() != n) throw invalid_argument("Code size mismatch");
+        if (c.size() != n) throw invalid_argument("Code size does not match");
         digits = c;
     }
 
@@ -162,7 +162,7 @@ public:
     //func playGame()
     void playGame() {
         cout << "Welcome to Mastermind!" << endl;
-        cout << "======================" << endl;
+        cout << "---------------------" << endl;
         printSecretCode(); // Print secret code as required
         
         for (int attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
@@ -181,7 +181,7 @@ public:
             cout << "Attempts remaining: " << (MAX_ATTEMPTS - attempt) << endl;
         }
         
-        cout << "\nGame over! You failed to solve the code." << endl;
+        cout << "\nGame over! You are failed." << endl;
         printSecretCode();
     }
 };
