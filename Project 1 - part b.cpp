@@ -134,7 +134,7 @@ public:
                 if (cin.fail() || digit < 0 || digit >= m) {
                     cin.clear();
                     cin.ignore(1000, '\n');
-                    cout << "Invalid digit. Enter a number between 0 and " << m-1 << ": ";
+                    cout << "Invalid number, please enter a number between 0 and " << m-1 << ": ";
                 } else {
                     break;
                 }
