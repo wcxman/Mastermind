@@ -5,7 +5,7 @@
 #include <ctime>
 using namespace std;
 
-// Forward declaration
+//Forward declaration
 class code;
 
 class response {
@@ -14,23 +14,23 @@ private:
     int incorrect;
 
 public:
-    // (a) constructor
+    //constructor
     response(int c = 0, int i = 0) : correct(c), incorrect(i) {}
     
-    // (b) set and get functions
+    //set and get functions
     void setCorrect(int c) { correct = c; }
     void setIncorrect(int i) { incorrect = i; }
     int getCorrect() const { return correct; }
     int getIncorrect() const { return incorrect; }
 };
 
-// (c) overloaded operator == (global)
+//overloaded operator == (global)
 bool operator==(const response& r1, const response& r2) {
     return r1.getCorrect() == r2.getCorrect() && 
            r1.getIncorrect() == r2.getIncorrect();
 }
 
-// (d) overloaded operator << (global)
+//overloaded operator << (global)
 ostream& operator<<(ostream& os, const response& r) {
     os << r.getCorrect() << " correct, " << r.getIncorrect() << " incorrect";
     return os;
@@ -43,7 +43,7 @@ private:
     vector<int> digits;
 
 public:
-    // constructor
+    //constructor
     code(int length, int range) : n(length), m(range) {
         if (n <= 0 || m <= 0) throw invalid_argument("Length and range must be positive");
         initializeRandom();
@@ -111,18 +111,18 @@ private:
     static const int MAX_ATTEMPTS = 10;
 
 public:
-    // (b) two constructors
-    mastermind() : n(5), m(10), secret(5, 10) {}  // default values
+    //two constructors
+    mastermind() : n(5), m(10), secret(5, 10) {}  //default values
     
     mastermind(int n_val, int m_val) : n(n_val), m(m_val), secret(n_val, m_val) {}
     
-    // (c) function that prints the secret code
+    //prints the secret code
     void printSecretCode() const {
         cout << "Secret code: ";
         secret.printCode();
     }
     
-    // (d) function humanGuess() that reads a guess from keyboard
+    //reads a guess from keyboard
     code humanGuess() {
         vector<int> guessDigits;
         cout << "Enter your guess (" << n << " digits, 0 to " << m-1 << "): ";
@@ -147,19 +147,19 @@ public:
         return guess;
     }
     
-    // (e) function getResponse() that returns a response
+    //returns a response
     response getResponse(const code& guess) {
         int correct = secret.checkCorrect(guess);
         int incorrect = secret.checkIncorrect(guess);
         return response(correct, incorrect);
     }
     
-    // (f) function isSolved() 
+    //func isSolved() 
     bool isSolved(const response& r) const {
         return r.getCorrect() == n;
     }
     
-    // (g) function playGame()
+    //func playGame()
     void playGame() {
         cout << "Welcome to Mastermind!" << endl;
         cout << "======================" << endl;
@@ -186,7 +186,7 @@ public:
     }
 };
 
-// (3) main function
+//func main
 int main() {
     srand(time(0));
     
