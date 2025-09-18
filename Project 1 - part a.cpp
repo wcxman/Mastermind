@@ -6,17 +6,16 @@ using namespace std;
 
 class Code {
 private:
-    int n;                  // code length
-    int m;                  // digit range [0..m-1]
-    vector<int> secret;     // secret digits
+    int n;                  //code length
+    int m;                  //digit range [0, m-1]
+    vector<int> secret;     //secret digits
 
 public:
-    // constructor: auto-generate random code
+    //random codes
     Code(int length, int range) : n(length), m(range) {
         initializeRandom();
     }
-
-    // fill with random digits
+    //random digits
     void initializeRandom() {
         secret.clear();
         for (int i = 0; i < n; i++) {
@@ -24,7 +23,7 @@ public:
         }
     }
 
-    // count digits that match in the same position
+    //count digits that match in the same position
     int checkCorrect(const Code& guess) const {
         int correct = 0;
         for (int i = 0; i < n; i++) {
@@ -33,7 +32,7 @@ public:
         return correct;
     }
 
-    // count digits that are correct but in the wrong position
+    //count digits that are correct but in the wrong position
     int checkIncorrect(const Code& guess) const {
         vector<int> codeCount(m, 0), guessCount(m, 0);
         int incorrect = 0;
@@ -50,12 +49,12 @@ public:
         return incorrect;
     }
 
-    // helper: manually set code
+    //manually set code
     void setCode(const vector<int>& c) {
         if ((int)c.size() == n) secret = c;
     }
 
-    // print out the code
+    //print out
     void printCode() const {
         for (int d : secret) cout << d << " ";
         cout << "\n";
@@ -65,16 +64,16 @@ public:
 int main() {
     srand(time(0));
 
-    // create a code of length 5, range 0-9
+    //create a code of length 5, range 0-9
     Code secretCode(5, 10);
-    // for demo, fix the code to something known
+    //fix the code to something known
     secretCode.setCode({3, 1, 4, 1, 9});
 
     cout << "Secret code: ";
     secretCode.printCode();
     cout << endl;
 
-    // test guesses
+    //test
     vector<vector<int>> guesses = {
         {5, 0, 3, 2, 6},
         {2, 1, 2, 2, 2},
