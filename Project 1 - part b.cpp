@@ -1,158 +1,208 @@
+//Part b: function for playing
 #include <iostream>
 #include <vector>
 #include <cstdlib>
 #include <ctime>
 using namespace std;
 
+// Forward declaration
+class code;
 
-//Part b: function for playing
-class Response {
+class response {
 private:
-    int numCorrect;
-    int numIncorrect;
+    int correct;
+    int incorrect;
 
 public:
-    // Constructor
-    Response(int correct = 0, int incorrect = 0)
-        : numCorrect(correct), numIncorrect(incorrect) {}
-
-    // Getters
-    int getCorrect() const { return numCorrect; }
-    int getIncorrect() const { return numIncorrect; }
-
-    // Setters
-    void setCorrect(int c) { numCorrect = c; }
-    void setIncorrect(int ic) { numIncorrect = ic; }
-
-    // Equality operator
-    friend bool operator==(const Response &r1, const Response &r2) {
-        return (r1.numCorrect == r2.numCorrect &&
-                r1.numIncorrect == r2.numIncorrect);
-    }
-
-    // Print operator
-    friend ostream& operator<<(ostream &out, const Response &r) {
-        out << "Correct: " << r.numCorrect << ", Incorrect: " << r.numIncorrect;
-        return out;
-    }
+    // (a) constructor
+    response(int c = 0, int i = 0) : correct(c), incorrect(i) {}
+    
+    // (b) set and get functions
+    void setCorrect(int c) { correct = c; }
+    void setIncorrect(int i) { incorrect = i; }
+    int getCorrect() const { return correct; }
+    int getIncorrect() const { return incorrect; }
 };
 
-// Object Code
-class Code {
+// (c) overloaded operator == (global)
+bool operator==(const response& r1, const response& r2) {
+    return r1.getCorrect() == r2.getCorrect() && 
+           r1.getIncorrect() == r2.getIncorrect();
+}
+
+// (d) overloaded operator << (global)
+ostream& operator<<(ostream& os, const response& r) {
+    os << r.getCorrect() << " correct, " << r.getIncorrect() << " incorrect";
+    return os;
+}
+
+class code {
 private:
-    vector<int> digits;   // secret code
-    int length;
+    int n;
+    int m;
+    vector<int> digits;
 
 public:
-    Code(int n = 5, int m = 10) : length(n) {
-        digits.resize(n);
-        srand((unsigned) time(0));
+    // constructor
+    code(int length, int range) : n(length), m(range) {
+        if (n <= 0 || m <= 0) throw invalid_argument("Length and range must be positive");
+        initializeRandom();
+    }
+
+    void initializeRandom() {
+        digits.clear();
         for (int i = 0; i < n; i++) {
-            digits[i] = rand() % m; // numbers in [0, m-1]
+            digits.push_back(rand() % m);
         }
     }
 
-    Code(const vector<int>& guess) {
-        digits = guess;
-        length = (int) guess.size();
+    int checkCorrect(const code& guess) const {
+        if (guess.n != n) throw invalid_argument("Guess length mismatch");
+        int count = 0;
+        for (int i = 0; i < n; i++) {
+            if (digits[i] == guess.digits[i]) {
+                count++;
+            }
+        }
+        return count;
+    }
+
+    int checkIncorrect(const code& guess) const {
+        if (guess.n != n) throw invalid_argument("Guess length mismatch");
+        vector<int> secretCount(m, 0);
+        vector<int> guessCount(m, 0);
+        
+        for (int i = 0; i < n; i++) {
+            if (digits[i] != guess.digits[i]) {
+                secretCount[digits[i]]++;
+                guessCount[guess.digits[i]]++;
+            }
+        }
+        
+        int count = 0;
+        for (int i = 0; i < m; i++) {
+            count += min(secretCount[i], guessCount[i]);
+        }
+        return count;
+    }
+
+    void setCode(const vector<int>& c) {
+        if (c.size() != n) throw invalid_argument("Code size mismatch");
+        digits = c;
     }
 
     void printCode() const {
-        for (int d : digits) cout << d << " ";
+        for (int d : digits) {
+            cout << d << " ";
+        }
         cout << endl;
     }
 
     const vector<int>& getDigits() const { return digits; }
-
-    // compare guess with secret -> generate response
-    Response compareWith(const Code &guess) const {
-        int correct = 0;
-        int incorrect = 0;
-        vector<bool> usedSecret(length, false);
-        vector<bool> usedGuess(length, false);
-
-        // first pass: correct position
-        for (int i = 0; i < length; i++) {
-            if (digits[i] == guess.digits[i]) {
-                correct++;
-                usedSecret[i] = true;
-                usedGuess[i] = true;
-            }
-        }
-
-        // second pass: correct digit, wrong place
-        for (int i = 0; i < length; i++) {
-            if (usedGuess[i]) continue;
-            for (int j = 0; j < length; j++) {
-                if (!usedSecret[j] && guess.digits[i] == digits[j]) {
-                    incorrect++;
-                    usedSecret[j] = true;
-                    break;
-                }
-            }
-        }
-
-        return Response(correct, incorrect);
-    }
+    int getLength() const { return n; }
+    int getRange() const { return m; }
 };
 
-// Game play class
-class Mastermind {
+class mastermind {
 private:
-    Code secret;
-    int n, m;
+    code secret;
+    int n;
+    int m;
+    static const int MAX_ATTEMPTS = 10;
 
 public:
-    // default constructor
-    Mastermind() : n(5), m(10), secret(n, m) {}
-
-    // custom constructor
-    Mastermind(int nVal, int mVal) : n(nVal), m(mVal), secret(n, m) {}
-
-    void printSecret() const {
+    // (b) two constructors
+    mastermind() : n(5), m(10), secret(5, 10) {}  // default values
+    
+    mastermind(int n_val, int m_val) : n(n_val), m(m_val), secret(n_val, m_val) {}
+    
+    // (c) function that prints the secret code
+    void printSecretCode() const {
         cout << "Secret code: ";
         secret.printCode();
     }
-
-    Code humanGuess() {
+    
+    // (d) function humanGuess() that reads a guess from keyboard
+    code humanGuess() {
         vector<int> guessDigits;
-        cout << "Enter your guess (" << n << " numbers between 0 and " << m-1 << "): ";
+        cout << "Enter your guess (" << n << " digits, 0 to " << m-1 << "): ";
+        
         for (int i = 0; i < n; i++) {
-            int val;
-            cin >> val;
-            guessDigits.push_back(val);
+            int digit;
+            while (true) {
+                cin >> digit;
+                if (cin.fail() || digit < 0 || digit >= m) {
+                    cin.clear();
+                    cin.ignore(1000, '\n');
+                    cout << "Invalid digit. Enter a number between 0 and " << m-1 << ": ";
+                } else {
+                    break;
+                }
+            }
+            guessDigits.push_back(digit);
         }
-        return Code(guessDigits);
+        
+        code guess(n, m);
+        guess.setCode(guessDigits);
+        return guess;
     }
-
-    Response getResponse(const Code &guess) const {
-        return secret.compareWith(guess);
+    
+    // (e) function getResponse() that returns a response
+    response getResponse(const code& guess) {
+        int correct = secret.checkCorrect(guess);
+        int incorrect = secret.checkIncorrect(guess);
+        return response(correct, incorrect);
     }
-
-    bool isSolved(const Response &r) const {
+    
+    // (f) function isSolved() 
+    bool isSolved(const response& r) const {
         return r.getCorrect() == n;
     }
-
+    
+    // (g) function playGame()
     void playGame() {
-        printSecret();  // required for testing
-        int attempts = 0;
-        while (true) {
-            attempts++;
-            Code guess = humanGuess();
-            Response r = getResponse(guess);
-            cout << r << endl;
-
+        cout << "Welcome to Mastermind!" << endl;
+        cout << "======================" << endl;
+        printSecretCode(); // Print secret code as required
+        
+        for (int attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
+            cout << "\nAttempt " << attempt << " of " << MAX_ATTEMPTS << endl;
+            
+            code guess = humanGuess();
+            response r = getResponse(guess);
+            
+            cout << "Response: " << r << endl;
+            
             if (isSolved(r)) {
-                cout << "You solved it in " << attempts << " attempts!" << endl;
-                break;
+                cout << "\nCongratulations! You solved it in " << attempt << " attempts!" << endl;
+                return;
             }
+            
+            cout << "Attempts remaining: " << (MAX_ATTEMPTS - attempt) << endl;
         }
+        
+        cout << "\nGame over! You failed to solve the code." << endl;
+        printSecretCode();
     }
 };
 
-//Output
+// (3) main function
 int main() {
-    Mastermind game(4, 6); // example: length=4, range=0..5
-    game.playGame();
+    srand(time(0));
+    
+    int n, m;
+    cout << "Enter code length (n): ";
+    cin >> n;
+    cout << "Enter digit range (m): ";
+    cin >> m;
+    
+    try {
+        mastermind game(n, m);
+        game.playGame();
+    } catch (const exception& e) {
+        cout << "Error: " << e.what() << endl;
+        return 1;
+    }
+    
     return 0;
 }
