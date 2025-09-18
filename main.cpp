@@ -89,7 +89,7 @@ public:
     }
 };
 
-// Part 1: Main function for testing
+// Part a: Main function for testing
 void part1Main() {
     cout << "=== Sample Guess Code ===" << endl;
     
@@ -135,7 +135,7 @@ void part1Main() {
     cout << "Correct positions: " << secretCode.checkCorrect(guess3) << endl;
     cout << "Correct digits wrong position: " << secretCode.checkIncorrect(guess3) << endl;
 }
-
+//Part b: function for playing
 class Response {
 private:
     int correct;
