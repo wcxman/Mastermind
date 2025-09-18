@@ -6,24 +6,21 @@ using namespace std;
 
 class Code {
 private:
-    int n;                  //code length
-    int m;                  //digit range [0, m-1]
-    vector<int> secret;     //secret digits
+    int n; //code length
+    int m; //digit range [0, m-1]
+    vector<int> secret; //secret digits
 
 public:
-    //random codes
+    //random codes and digits
     Code(int length, int range) : n(length), m(range) {
-        initializeRandom();
-    }
-    //random digits
+        initializeRandom(); }
     void initializeRandom() {
         secret.clear();
         for (int i = 0; i < n; i++) {
             secret.push_back(rand() % m);
         }
     }
-
-    //count digits that match in the same position
+    //count digits that match same position
     int checkCorrect(const Code& guess) const {
         int correct = 0;
         for (int i = 0; i < n; i++) {
@@ -32,7 +29,7 @@ public:
         return correct;
     }
 
-    //count digits that are correct but in the wrong position
+    //count digits correct but in the wrong position
     int checkIncorrect(const Code& guess) const {
         vector<int> codeCount(m, 0), guessCount(m, 0);
         int incorrect = 0;
