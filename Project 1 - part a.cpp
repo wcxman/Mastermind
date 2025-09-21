@@ -4,10 +4,11 @@
 #include <ctime>
 using namespace std;
 
+//Declare Code will encapsulate data and behaviour related to the digits, the length, and operations
 class Code {
 private:
-    int n; //code length
-    int m; //digit range [0, m-1]
+    int n; //store the code length
+    int m; //store the digit range [0, m-1]
     vector<int> secret; //secret digits
 
 public:
