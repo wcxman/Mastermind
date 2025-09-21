@@ -31,16 +31,18 @@ public:
     }
 
     //count digits correct but in the wrong position
-    int checkIncorrect(const Code& guess) const {
+    //Initialize counters for each possible digit in the range
+    int checkIncorrect(const Code& guess) const { 
         vector<int> codeCount(m, 0), guessCount(m, 0);
         int incorrect = 0;
-
+        //secret[i] and guess.secret[i] is the digit in the secret code that is not in the correct position
         for (int i = 0; i < n; i++) {
             if (secret[i] != guess.secret[i]) {
                 codeCount[secret[i]]++;
                 guessCount[guess.secret[i]]++;
             }
         }
+        //Compare counts of the number of not matched for digit d is the minimum of how many times it appears in secret and guess
         for (int d = 0; d < m; d++) {
             incorrect += min(codeCount[d], guessCount[d]);
         }
@@ -71,23 +73,24 @@ int main() {
     secretCode.printCode();
     cout << endl;
 
-    //test sample code from part a. instruction
+    //test sample guess from part a. instruction
     vector<vector<int>> guesses = {
         {5, 0, 3, 2, 6},
         {2, 1, 2, 2, 2},
         {1, 3, 3, 4, 5}
     };
-
+    //Create Code object for the sample guess
     for (int i = 0; i < (int)guesses.size(); i++) {
         Code guess(5, 10);
-        guess.setCode(guesses[i]);
+        guess.setCode(guesses[i]); //Set the guess digits from the guesses vector
 
         cout << "Guess " << i + 1 << ": ";
         guess.printCode();
-
+        //Compare the guess with the secret code, and c counts digits correct and in the right position
+        //ic counts digits correct but in the wrong position
         int c = secretCode.checkCorrect(guess);
         int ic = secretCode.checkIncorrect(guess);
-
+        //Print out the results
         cout << "  correct (right spot): " << c << "\n";
         cout << "  correct (wrong spot): " << ic << "\n\n";
     }
