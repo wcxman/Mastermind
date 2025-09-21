@@ -71,7 +71,7 @@ int main() {
     secretCode.printCode();
     cout << endl;
 
-    //test
+    //test sample code from part a. instruction
     vector<vector<int>> guesses = {
         {5, 0, 3, 2, 6},
         {2, 1, 2, 2, 2},
