@@ -6,7 +6,7 @@
 using namespace std;
 
 //Forward declaration
-class code;
+class Code;
 
 class response {
 private:
@@ -16,7 +16,7 @@ private:
 public:
     //constructor
     response(int c = 0, int i = 0) : correct(c), incorrect(i) {}
-    
+
     //set and get functions
     void setCorrect(int c) { correct = c; }
     void setIncorrect(int i) { incorrect = i; }
@@ -26,8 +26,8 @@ public:
 
 //overloaded operator == (global)
 bool operator==(const response& r1, const response& r2) {
-    return r1.getCorrect() == r2.getCorrect() && 
-           r1.getIncorrect() == r2.getIncorrect();
+    return r1.getCorrect() == r2.getCorrect() &&
+        r1.getIncorrect() == r2.getIncorrect();
 }
 
 //overloaded operator << (global)
@@ -36,76 +36,111 @@ ostream& operator<<(ostream& os, const response& r) {
     return os;
 }
 
-class code {
+//Declare Code will encapsulate data and behaviour 
+// related to the digits, the length, and operations
+class Code {
 private:
-    int n;
-    int m;
-    vector<int> digits;
+    int n; //store the Code length
+    int m; //store the digit range [0, m-1]
+    vector<int> secret; //secret digits
 
 public:
-    //constructor
-    code(int length, int range) : n(length), m(range) {
-        if (n <= 0 || m <= 0) throw invalid_argument("Length and range must be positive");
-        initializeRandom();
+    //random Codes and digits
+    Code(int length, int range) {
+        if (length <= 0) {
+            throw std::invalid_argument("Length must be positive");
+        }
+        else if (range <= 0) {
+            throw std::invalid_argument("Range must be positive");
+        }
+        else {
+            m = range;
+            n = length;
+            initializeRandom();
+        }
     }
 
+    //initializes the secret Code
     void initializeRandom() {
-        digits.clear();
+        secret.clear();
         for (int i = 0; i < n; i++) {
-            digits.push_back(rand() % m);
+            secret.push_back(rand() % m);
         }
     }
-
-    int checkCorrect(const code& guess) const {
-        if (guess.n != n) throw invalid_argument("Guess length does not match");
-        int count = 0;
-        for (int i = 0; i < n; i++) {
-            if (digits[i] == guess.digits[i]) {
-                count++;
+    //count digits that match same position
+    int checkCorrect(const Code& guess) const {
+        vector<int> guessCode = guess.getCode();
+        if (guessCode.size() != secret.size()) {
+            throw std::invalid_argument("Guess and Secret Code lengths must be the same");
+        }
+        else {
+            int correct = 0;
+            for (int i = 0; i < n; i++) {
+                if (secret[i] == guessCode[i]) correct++;
             }
+            return correct;
         }
-        return count;
+        return -1;
     }
 
-    int checkIncorrect(const code& guess) const {
-        if (guess.n != n) throw invalid_argument("Guess length does not match");
-        vector<int> secretCount(m, 0);
-        vector<int> guessCount(m, 0);
-        
-        for (int i = 0; i < n; i++) {
-            if (digits[i] != guess.digits[i]) {
-                secretCount[digits[i]]++;
-                guessCount[guess.digits[i]]++;
+    //count digits correct but in the wrong position
+    //Initialize counters for each possible digit in the range
+    int checkIncorrect(const Code& guess) const {
+        vector<int> guessCode = guess.getCode();
+        if (guessCode.size() != secret.size()) {
+            throw std::invalid_argument("Guess and Secret Code lengths must be the same");
+        }
+        else {
+            vector<int> CodeCount(m, 0), guessCount(m, 0);
+            int incorrect = 0;
+            //secret[i] and guess.secret[i] is the digit in the secret 
+            // Code that is not in the correct position
+            for (int i = 0; i < n; i++) {
+                if (secret[i] != guessCode[i]) {
+                    CodeCount[secret[i]]++;
+                    guessCount[guessCode[i]]++;
+                }
             }
+            //Compare counts of the number of not matched for digit d is the
+            // minimum of how many times it appears in secret and guess
+            for (int d = 0; d < m; d++) {
+                incorrect += min(CodeCount[d], guessCount[d]);
+            }
+            return incorrect;
         }
-        
-        int count = 0;
-        for (int i = 0; i < m; i++) {
-            count += min(secretCount[i], guessCount[i]);
-        }
-        return count;
-    }
+        return -1;
+    } //End checkIncorrect
 
+    //manually set Code
     void setCode(const vector<int>& c) {
-        if (c.size() != n) throw invalid_argument("Code size does not match");
-        digits = c;
+        if ((int)c.size() == n) secret = c;
     }
 
+    //print out
     void printCode() const {
-        for (int d : digits) {
-            cout << d << " ";
-        }
-        cout << endl;
+        for (int d : secret) cout << d << " ";
+        cout << "\n";
     }
 
-    const vector<int>& getDigits() const { return digits; }
-    int getLength() const { return n; }
-    int getRange() const { return m; }
+    //get length
+    int getLength() const {
+        return n;
+    }
+
+    //get range
+    int getRange() const {
+        return m;
+    }
+
+    //get Code
+    vector<int> getCode() const {
+        return secret;
+    }
 };
 
 class mastermind {
 private:
-    code secret;
+    Code secret;
     int n;
     int m;
     static const int MAX_ATTEMPTS = 10;
@@ -113,20 +148,20 @@ private:
 public:
     //two constructors
     mastermind() : n(5), m(10), secret(5, 10) {}  //default values
-    
+
     mastermind(int n_val, int m_val) : n(n_val), m(m_val), secret(n_val, m_val) {}
-    
-    //prints the secret code
+
+    //prints the secret Code
     void printSecretCode() const {
-        cout << "Secret code: ";
+        cout << "Secret Code: ";
         secret.printCode();
     }
-    
+
     //reads a guess from keyboard
-    code humanGuess() {
+    Code humanGuess() {
         vector<int> guessDigits;
-        cout << "Enter your guess (" << n << " digits, 0 to " << m-1 << "): ";
-        
+        cout << "Enter your guess (" << n << " digits, 0 to " << m - 1 << "): ";
+
         for (int i = 0; i < n; i++) {
             int digit;
             while (true) {
@@ -134,53 +169,54 @@ public:
                 if (cin.fail() || digit < 0 || digit >= m) {
                     cin.clear();
                     cin.ignore(1000, '\n');
-                    cout << "Invalid number, please enter a number between 0 and " << m-1 << ": ";
-                } else {
+                    cout << "Invalid number, please enter a number between 0 and " << m - 1 << ": ";
+                }
+                else {
                     break;
                 }
             }
             guessDigits.push_back(digit);
         }
-        
-        code guess(n, m);
+
+        Code guess(n, m);
         guess.setCode(guessDigits);
         return guess;
     }
-    
+
     //returns a response
-    response getResponse(const code& guess) {
+    response getResponse(const Code& guess) {
         int correct = secret.checkCorrect(guess);
         int incorrect = secret.checkIncorrect(guess);
         return response(correct, incorrect);
     }
-    
+
     //func isSolved() 
     bool isSolved(const response& r) const {
         return r.getCorrect() == n;
     }
-    
+
     //func playGame()
     void playGame() {
         cout << "Welcome to Mastermind!" << endl;
         cout << "---------------------" << endl;
-        printSecretCode(); // Print secret code as required
-        
+        printSecretCode(); // Print secret Code as required
+
         for (int attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
             cout << "\nAttempt " << attempt << " of " << MAX_ATTEMPTS << endl;
-            
-            code guess = humanGuess();
+
+            Code guess = humanGuess();
             response r = getResponse(guess);
-            
+
             cout << "Response: " << r << endl;
-            
+
             if (isSolved(r)) {
                 cout << "\nCongratulations! You solved it in " << attempt << " attempts!" << endl;
                 return;
             }
-            
+
             cout << "Attempts remaining: " << (MAX_ATTEMPTS - attempt) << endl;
         }
-        
+
         cout << "\nGame over! You are failed." << endl;
         printSecretCode();
     }
@@ -189,20 +225,21 @@ public:
 //func main
 int main() {
     srand(time(0));
-    
+
     int n, m;
-    cout << "Enter code length (n): ";
+    cout << "Enter Code length (n): ";
     cin >> n;
     cout << "Enter digit range (m): ";
     cin >> m;
-    
+
     try {
         mastermind game(n, m);
         game.playGame();
-    } catch (const exception& e) {
+    }
+    catch (const exception& e) {
         cout << "Error: " << e.what() << endl;
         return 1;
     }
-    
+
     return 0;
 }
